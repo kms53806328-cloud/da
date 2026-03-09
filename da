@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>네크로바인더 덱 빌딩 가이드 — Slay the Spire 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #0a0a0f;
+  --bg-card: #12111a;
+  --bg-card-hover: #1a1825;
+  --border-dim: #2a2640;
+  --border-glow: #6b3fa0;
+  --accent-purple: #9b6dff;
+  --accent-magenta: #c94090;
+  --accent-cyan: #4ecdc4;
+  --accent-gold: #f0c040;
+  --accent-red: #e04050;
+  --accent-green: #50c878;
+  --accent-blue: #5090e0;
+  --accent-orange: #e08040;
+  --text-bright: #e8e4f0;
+  --text-mid: #a09cb0;
+  --text-dim: #6a6580;
+  --doom-color: #b040d0;
+  --soul-color: #40b0e0;
+  --osty-color: #d4a040;
+  --volatile-color: #e06060;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-bright);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 400;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(107,63,160,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(201,64,144,0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Hero ── */
+header {
+  text-align: center;
+  padding: 80px 0 48px;
+  position: relative;
+}
+
+header::after {
+  content: '';
+  display: block;
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-purple), transparent);
+  margin: 32px auto 0;
+}
+
+header h1 {
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-magenta));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+header .subtitle {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  margin-top: 12px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Nav / TOC ── */
+nav.toc {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 48px;
+}
+
+nav.toc h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+nav.toc ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+nav.toc a {
+  color: var(--text-mid);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+nav.toc a:hover {
+  color: var(--text-bright);
+  background: rgba(155,109,255,0.08);
+}
+
+nav.toc .diff {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+}
+
+/* ── Concepts Section ── */
+.concepts {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 48px;
+}
+
+.concepts h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  color: var(--accent-purple);
+  margin-bottom: 16px;
+}
+
+.concept-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.concept-item {
+  background: rgba(155,109,255,0.04);
+  border: 1px solid rgba(155,109,255,0.1);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.concept-item .label {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.concept-item .desc {
+  font-size: 0.8rem;
+  color: var(--text-mid);
+  line-height: 1.5;
+}
+
+/* ── Build Section ── */
+.build-section {
+  margin-bottom: 56px;
+  scroll-margin-top: 24px;
+}
+
+.build-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.build-header h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.build-header .build-num {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.diff-badge {
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.diff-easy { background: rgba(80,200,120,0.15); color: var(--accent-green); border: 1px solid rgba(80,200,120,0.25); }
+.diff-mid { background: rgba(240,192,64,0.12); color: var(--accent-gold); border: 1px solid rgba(240,192,64,0.2); }
+.diff-hard { background: rgba(224,64,80,0.12); color: var(--accent-red); border: 1px solid rgba(224,64,80,0.2); }
+
+.build-desc {
+  color: var(--text-mid);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  padding-left: 2px;
+}
+
+/* ── Card List ── */
+.card-group-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  margin: 20px 0 10px;
+  padding-left: 4px;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-item {
+  display: grid;
+  grid-template-columns: minmax(140px, auto) 1fr;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: border-color 0.2s, background 0.2s;
+  align-items: baseline;
+}
+
+.card-item:hover {
+  border-color: var(--border-glow);
+  background: var(--bg-card-hover);
+}
+
+.card-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.card-name .en {
+  font-weight: 300;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+.card-name .rarity-rare { color: var(--accent-gold); }
+.card-name .rarity-uncommon { color: var(--accent-cyan); }
+.card-name .rarity-power { color: var(--accent-orange); }
+.card-name .rarity-starter { color: var(--text-mid); }
+.card-name .rarity-ancient { color: var(--accent-magenta); }
+.card-name .rarity-colorless { color: #b0b0c0; }
+
+.card-desc {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  line-height: 1.5;
+}
+
+.card-desc strong {
+  color: var(--text-bright);
+  font-weight: 500;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.tag-doom { background: rgba(176,64,208,0.2); color: var(--doom-color); }
+.tag-soul { background: rgba(64,176,224,0.15); color: var(--soul-color); }
+.tag-osty { background: rgba(212,160,64,0.15); color: var(--osty-color); }
+.tag-volatile { background: rgba(224,96,96,0.15); color: var(--volatile-color); }
+.tag-power { background: rgba(224,128,64,0.15); color: var(--accent-orange); }
+.tag-colorless { background: rgba(176,176,192,0.1); color: #b0b0c0; }
+
+/* ── Relic Box ── */
+.relic-box {
+  background: rgba(240,192,64,0.04);
+  border: 1px solid rgba(240,192,64,0.15);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 14px;
+}
+
+.relic-box .relic-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent-gold);
+  margin-bottom: 6px;
+}
+
+.relic-box .relic-item {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.relic-box .relic-item strong {
+  color: var(--accent-gold);
+  font-weight: 500;
+}
+
+/* ── Tip Box ── */
+.tip-box {
+  background: rgba(78,205,196,0.05);
+  border-left: 3px solid var(--accent-cyan);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.tip-box strong {
+  color: var(--accent-cyan);
+}
+
+/* ── Combo Box ── */
+.combo-box {
+  background: rgba(155,109,255,0.05);
+  border: 1px solid rgba(155,109,255,0.15);
+  border-radius: 8px;
+  padding: 18px;
+  margin-top: 14px;
+}
+
+.combo-box .combo-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-purple);
+  margin-bottom: 8px;
+}
+
+.combo-box ol {
+  padding-left: 20px;
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  line-height: 1.8;
+}
+
+.combo-box ol strong {
+  color: var(--text-bright);
+}
+
+/* ── Colorless Section ── */
+.colorless-section {
+  margin-bottom: 56px;
+  scroll-margin-top: 24px;
+}
+
+.colorless-section h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.colorless-section .section-desc {
+  color: var(--text-mid);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+/* ── Tips Section ── */
+.tips-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 56px;
+  scroll-margin-top: 24px;
+}
+
+.tips-section h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.3rem;
+  color: var(--accent-purple);
+  margin-bottom: 16px;
+}
+
+.tips-section .tip-item {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.tips-section .tip-item:last-child { border-bottom: none; }
+.tips-section .tip-item strong { color: var(--text-bright); }
+.tips-section .tip-num {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  background: rgba(155,109,255,0.15);
+  color: var(--accent-purple);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-right: 10px;
+}
+
+/* ── Footer ── */
+footer {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+footer a { color: var(--accent-purple); text-decoration: none; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .container { padding: 0 16px; }
+  header { padding: 48px 0 32px; }
+  nav.toc ul { grid-template-columns: 1fr; }
+  .concept-grid { grid-template-columns: 1fr; }
+  .card-item { grid-template-columns: 1fr; gap: 4px; }
+  .build-header { flex-direction: column; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- ════ HEADER ════ -->
+<header>
+  <h1>NECROBINDER</h1>
+  <div class="subtitle">Slay the Spire 2 · 덱 빌딩 가이드</div>
+</header>
+
+<!-- ════ TOC ════ -->
+<nav class="toc">
+  <h2>목차</h2>
+  <ul>
+    <li><a href="#concepts">📖 기본 개념</a></li>
+    <li><a href="#build1">🦴 빌드 1 — 골골이 탱커딜러 <span class="diff">★☆☆</span></a></li>
+    <li><a href="#build2">💀 빌드 2 — 종말 처형자 <span class="diff">★★☆</span></a></li>
+    <li><a href="#build3">👻 빌드 3 — 영혼 기관총 <span class="diff">★★★</span></a></li>
+    <li><a href="#build4">💣 빌드 4 — 살점 재주 폭탄 <span class="diff">★★☆</span></a></li>
+    <li><a href="#build5">🔪 빌드 5 — 사신의 낫 키우기 <span class="diff">★★☆</span></a></li>
+    <li><a href="#build6">🌀 빌드 6 — 휘발성 폭풍 <span class="diff">★★★</span></a></li>
+    <li><a href="#build7">⚡ 빌드 7 — 망각+영혼 하이브리드 <span class="diff">★★★</span></a></li>
+    <li><a href="#colorless">🃏 범용 무색 카드</a></li>
+    <li><a href="#tips">💡 초반 운영 팁</a></li>
+  </ul>
+</nav>
+
+<!-- ════ CONCEPTS ════ -->
+<section class="concepts" id="concepts">
+  <h2>기본 개념</h2>
+  <div class="concept-grid">
+    <div class="concept-item">
+      <div class="label" style="color:var(--osty-color)">🦴 골골이 (Osty)</div>
+      <div class="desc">전투 시작 시 HP 1로 소환. 대신 피해를 받아줌. 죽으면 다음 턴 재소환, 살아남으면 HP +1. <strong>소환</strong> 키워드로 최대 체력 증가 (턴 끝나도 유지).</div>
+    </div>
+    <div class="concept-item">
+      <div class="label" style="color:var(--doom-color)">💀 종말 (Doom)</div>
+      <div class="desc">적에게 쌓이는 디버프. 독과 달리 틱뎀 없음. 대신 적의 <strong>현재 HP ≤ 종말 스택</strong>이면 턴 종료 시 즉사.</div>
+    </div>
+    <div class="concept-item">
+      <div class="label" style="color:var(--soul-color)">👻 영혼 (Soul)</div>
+      <div class="desc">0코스트 토큰 카드. 사용 시 <strong>카드 2장 드로우 + 소멸</strong>. 덱 순환 엔진의 핵심. 출몰 등과 조합하면 윈컨이 됨.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ BUILD 1 ════ -->
+<section class="build-section" id="build1">
+  <div class="build-header">
+    <span class="build-num">Build 01</span>
+    <h2 style="color:var(--osty-color)">골골이 탱커딜러</h2>
+    <span class="diff-badge diff-easy">★☆☆ 입문</span>
+  </div>
+  <div class="build-desc">골골이를 뚱뚱하게 키워서 방패 겸 딜러로 쓰는 가장 직관적인 빌드. 소환으로 체력을 쌓고, 풀어놓기/파수꾼으로 폭딜.</div>
+
+  <div class="card-group-title">핵심 카드</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-starter">호위</span> <span class="en">Bodyguard</span> <span class="tag tag-osty">스타터</span></div>
+      <div class="card-desc">소환 5. 골골이 체력 올리기의 기본</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-starter">풀어놓기</span> <span class="en">Unleash</span> <span class="tag tag-osty">스타터</span></div>
+      <div class="card-desc">골골이 6뎀 + <strong>현재 체력만큼 추가 피해</strong>. 윈컨 1호</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-ancient">파수꾼</span> <span class="en">Protector</span> <span class="tag tag-osty">고대의 존재</span></div>
+      <div class="card-desc">골골이 10뎀 + <strong>최대 체력만큼 추가 피해</strong>. 풀어놓기 상위호환. 오로바스의 고대의 이빨로 획득</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">시선 유도</span> <span class="en">Pull Aggro</span></div>
+      <div class="card-desc">소환 4 + 방어도 7. 공수 동시에 챙김</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">소생</span> <span class="en">Reanimate</span> <span class="tag tag-osty">레어</span></div>
+      <div class="card-desc"><strong>소환 20</strong>. 소멸이지만 한 방에 골골이를 거대하게</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">격려</span> <span class="en">Spur</span></div>
+      <div class="card-desc">보존. 소환 3 + 골골이 체력 5 회복. 타이밍 맞춰 쓸 수 있어 유연</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">쥐어짜기</span> <span class="en">Squeeze</span> <span class="tag tag-osty">레어</span></div>
+      <div class="card-desc">골골이 25뎀 + <strong>다른 골골이 공격 1장당 +5</strong>. 골골이 어택 많이 모으면 한 방 100+</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">땅고르기</span> <span class="en">Flatten</span></div>
+      <div class="card-desc">골골이 12뎀. <strong>이번 턴 골골이가 이미 공격했으면 0코스트</strong>. 쥐어짜기 뒤에 공짜 콤보</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">넘기기</span> <span class="en">Snap</span></div>
+      <div class="card-desc">골골이 7뎀 + 카드 1장에 보존 추가. 가벼운 골골이 어택</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">덮쳐!</span> <span class="en">Sic 'Em</span></div>
+      <div class="card-desc">골골이 5뎀 + <strong>골골이가 이 적 공격할 때마다 소환 2</strong>. 연타할수록 눈덩이</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">석회화</span> <span class="en">Calcify</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">골골이 공격에 추가 피해 4. 모든 골골이 어택이 강화됨</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">덜그럭대기</span> <span class="en">Rattle</span></div>
+      <div class="card-desc">골골이 7뎀 × <strong>이번 턴 골골이 공격 횟수</strong>. 골골이 연타 턴에 폭딜</div>
+    </div>
+  </div>
+
+  <div class="relic-box">
+    <div class="relic-title">추천 유물</div>
+    <div class="relic-item"><strong>뼈 플루트</strong> — 골골이 공격 시 방어도 2 획득</div>
+    <div class="relic-item"><strong>해방된 성물함</strong> — 전투 시작 시 소환 5 + 매 턴 소환 2 (보스 유물)</div>
+  </div>
+</section>
+
+<!-- ════ BUILD 2 ════ -->
+<section class="build-section" id="build2">
+  <div class="build-header">
+    <span class="build-num">Build 02</span>
+    <h2 style="color:var(--doom-color)">종말 처형자</h2>
+    <span class="diff-badge diff-mid">★★☆ 중급</span>
+  </div>
+  <div class="build-desc">종말 스택을 쌓아서 적을 즉사시키는 컨트롤 빌드. HP 높은 보스/엘리트 상대로 진가를 발휘.</div>
+
+  <div class="card-group-title">핵심 카드</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">징벌</span> <span class="en">Scourge</span> <span class="tag tag-doom">종말</span></div>
+      <div class="card-desc">종말 13 + 카드 1장 드로우. <strong>메인 종말 공급원</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">역병 타격</span> <span class="en">Blight Strike</span> <span class="tag tag-doom">종말</span></div>
+      <div class="card-desc">8뎀 + <strong>가한 피해만큼 종말 부여</strong>. HP를 깎으면서 동시에 처형 라인도 올림</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">도망칠 수 없다</span> <span class="en">No Escape</span> <span class="tag tag-doom">종말</span></div>
+      <div class="card-desc">종말 10 + <strong>기존 종말 10당 추가 5</strong>. 기하급수적 폭발. 이 빌드의 꽃</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">비관적인 맥박</span> <span class="en">Negative Pulse</span> <span class="tag tag-doom">종말</span></div>
+      <div class="card-desc">방어도 5 + <strong>전체 적 종말 7</strong>. 방어하면서 전체 종말</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">죽음의 문턱</span> <span class="en">Death's Door</span></div>
+      <div class="card-desc">방어도 6, <strong>종말 건 턴이면 ×3 = 18</strong>. 터틀링 핵심</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">카운트다운</span> <span class="en">Countdown</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">매 턴 시작 시 랜덤 적에게 종말 6. 자동 종말 생성기</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">수의</span> <span class="en">Shroud</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc"><strong>종말 부여할 때마다 방어도 2</strong>. 종말 덱의 생존력</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">종말의 날</span> <span class="en">End of Days</span> <span class="tag tag-doom">레어</span></div>
+      <div class="card-desc"><strong>전체 종말 29 + 체력 ≤ 종말인 적 즉사</strong>. 궁극기</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">때가 되었다</span> <span class="en">Time's Up</span> <span class="tag tag-doom">레어</span></div>
+      <div class="card-desc">적의 종말만큼 피해. 종말 잔뜩 쌓고 피니셔</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">사신의 형상</span> <span class="en">Reaper Form</span> <span class="tag tag-power">레어 파워</span></div>
+      <div class="card-desc"><strong>공격 피해량 = 종말 부여량</strong>. 모든 공격이 종말 생성기가 됨</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">망각</span> <span class="en">Oblivion</span> <span class="tag tag-doom">레어</span></div>
+      <div class="card-desc">0코스트. <strong>이번 턴 카드 쓸 때마다 종말 3</strong>. 저코 카드 연타 시 폭발적</div>
+    </div>
+  </div>
+
+  <div class="relic-box">
+    <div class="relic-title">추천 유물</div>
+    <div class="relic-item"><strong>책 수리용 칼</strong> — 종말로 적 죽일 때마다 체력 3 회복</div>
+    <div class="relic-item"><strong>섬뜩한 램프</strong> — 매 전투 첫 디버프 카드 효과 2배</div>
+  </div>
+
+  <div class="tip-box">
+    <strong>팁:</strong> 영혼 패키지 (무덤지기, 강령회 등)를 소량 섞으면 드로우가 늘어서 핵심 종말 카드를 더 빨리 찾을 수 있어.
+  </div>
+</section>
+
+<!-- ════ BUILD 3 ════ -->
+<section class="build-section" id="build3">
+  <div class="build-header">
+    <span class="build-num">Build 03</span>
+    <h2 style="color:var(--soul-color)">영혼 기관총</h2>
+    <span class="diff-badge diff-hard">★★★ 고급</span>
+  </div>
+  <div class="build-desc">영혼으로 덱을 미친 속도로 순환시키면서 출몰로 적을 녹이는 엔진 빌드. 덱을 최대한 슬림하게 유지하는 게 핵심.</div>
+
+  <div class="card-group-title">엔진 파워</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">출몰</span> <span class="en">Haunt</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">영혼 쓸 때마다 랜덤 적 <strong>체력 6 잃음 (블록 무시)</strong>. 2장 이상 중첩 = 사기</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">생명 삼키기</span> <span class="en">Devour Life</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">영혼 쓸 때마다 소환 1. 출몰과 같이 깔면 <strong>영혼 하나로 딜+골골이 버프 동시</strong></div>
+    </div>
+  </div>
+
+  <div class="card-group-title">영혼 생성</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">강령회</span> <span class="en">Seance</span> <span class="tag tag-soul">영혼</span></div>
+      <div class="card-desc">0코스트 휘발성. 뽑을 더미 카드 → 영혼 변환. <strong>덱 슬리밍 + 영혼 생성 동시</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">혼령 포획</span> <span class="en">Capture Spirit</span> <span class="tag tag-soul">영혼</span></div>
+      <div class="card-desc">적 체력 3 잃음 + 영혼 3장 추가</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">분리</span> <span class="en">Severance</span> <span class="tag tag-soul">영혼</span></div>
+      <div class="card-desc">13뎀 + 뽑을/손/버린 더미에 영혼 각 1장</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">무덤지기</span> <span class="en">Grave Warden</span> <span class="tag tag-soul">영혼</span></div>
+      <div class="card-desc">방어도 8 + 영혼 1장. 수비 대체용</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">장송가</span> <span class="en">Dirge</span> <span class="tag tag-soul">영혼</span></div>
+      <div class="card-desc">X코스트. X번 소환 3 + 영혼 X장. 에너지 붓는 만큼 돌아옴</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">강탈</span> <span class="en">Reave</span> <span class="tag tag-soul">영혼</span></div>
+      <div class="card-desc">9뎀 + 영혼 1장. 저코 어택 겸 영혼 공급</div>
+    </div>
+  </div>
+
+  <div class="card-group-title">피니셔 & 방어</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">영혼 폭풍</span> <span class="en">Soul Storm</span> <span class="tag tag-soul">레어</span></div>
+      <div class="card-desc">9뎀 + <strong>소멸 더미 영혼 1장당 +2</strong>. 영혼 잔뜩 태운 뒤 피니셔</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">불사</span> <span class="en">Undeath</span></div>
+      <div class="card-desc">0코스트 방어도 7 + <strong>자기복제</strong>. 사이클 빠른 덱에서 무한 방어</div>
+    </div>
+  </div>
+
+  <div class="relic-box">
+    <div class="relic-title">추천 유물</div>
+    <div class="relic-item"><strong>장례용 가면</strong> — 전투 시작 시 영혼 3장 추가</div>
+    <div class="relic-item"><strong>멈추지 않는 팽이</strong> — 손에 카드 없으면 1장 드로우</div>
+  </div>
+</section>
+
+<!-- ════ BUILD 4 ════ -->
+<section class="build-section" id="build4">
+  <div class="build-header">
+    <span class="build-num">Build 04</span>
+    <h2 style="color:var(--accent-red)">살점 재주 + 종말 폭탄</h2>
+    <span class="diff-badge diff-mid">★★☆ 중급</span>
+  </div>
+  <div class="build-desc">살점 재주(디버프 걸 때마다 9뎀)를 깔고 종말/약화/취약을 마구 뿌려서 추가 피해를 폭발시키는 디버프 폭탄 빌드. 커뮤니티에서 화제된 조합.</div>
+
+  <div class="card-group-title">핵심 카드</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">살점 재주</span> <span class="en">Sleight of Flesh</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc"><strong>디버프 부여할 때마다 대상 적 9뎀</strong>. 종말/약화/취약 전부 트리거</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">종말의 날</span> <span class="en">End of Days</span> <span class="tag tag-doom">레어</span></div>
+      <div class="card-desc">전체 종말 29 + 즉사. 한 장으로 살점 재주 다수 트리거</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">죽음 인도자</span> <span class="en">Deathbringer</span></div>
+      <div class="card-desc">전체 종말 21 + 약화 1. 전체 적 다수 트리거</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">부식</span> <span class="en">Putrefy</span></div>
+      <div class="card-desc">약화 2 + 취약 2. <strong>1코에 디버프 4번 = 살점 재주 4번 = +36뎀</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">쇠락</span> <span class="en">Debilitate</span></div>
+      <div class="card-desc">7뎀 + 취약/약화 효과 2배 3턴. 부식과 조합하면 디버프 가치 폭발</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">비참함</span> <span class="en">Misery</span> <span class="tag tag-doom">레어</span></div>
+      <div class="card-desc">7뎀 + <strong>적의 디버프를 전체 적에게 복사</strong>. AoE전에서 살점 재주 트리거 폭발</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">비관적인 맥박</span> <span class="en">Negative Pulse</span></div>
+      <div class="card-desc">방어도 5 + 전체 종말 7. 방어+디버프 동시</div>
+    </div>
+  </div>
+
+  <div class="relic-box">
+    <div class="relic-title">추천 유물</div>
+    <div class="relic-item"><strong>섬뜩한 램프</strong> — 첫 디버프 카드 효과 2배</div>
+    <div class="relic-item"><strong>구슬 주머니</strong> — 전투 시작 시 전체 취약 1 (살점 재주 트리거)</div>
+  </div>
+</section>
+
+<!-- ════ BUILD 5 ════ -->
+<section class="build-section" id="build5">
+  <div class="build-header">
+    <span class="build-num">Build 05</span>
+    <h2 style="color:var(--accent-gold)">사신의 낫 키우기</h2>
+    <span class="diff-badge diff-mid">★★☆ 중급</span>
+  </div>
+  <div class="build-desc">사신의 낫은 쓸 때마다 런 전체에서 영구 +3뎀. Act 1 초반에 뜨면 런 전체를 이 카드 중심으로 잡아도 됨. Act 3 보스 때 한 방 100+ 가능.</div>
+
+  <div class="card-group-title">핵심 카드</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">사신의 낫</span> <span class="en">The Scythe</span> <span class="tag tag-doom">레어</span></div>
+      <div class="card-desc">2코 13뎀. <strong>쓸 때마다 영구 +3</strong>. 소멸이라 전투당 1번. 런 전체 성장형 윈컨</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">치사성</span> <span class="en">Lethality</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">휘발성. 매 턴 첫 공격 <strong>피해 +50%</strong>. 낫이 첫 공격이면 1.5배</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">변형</span> <span class="en">Transfigure</span></div>
+      <div class="card-desc">카드에 <strong>재사용 1 추가</strong>. 낫에 걸면 한 전투에 2번 사용 가능!</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">위습</span> <span class="en">Wisp</span></div>
+      <div class="card-desc">0코스트 에너지 획득. 낫 2코스트 충당</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">연명</span> <span class="en">Borrowed Time</span></div>
+      <div class="card-desc">자기 종말 3 대신 에너지 획득. 리스크 있지만 고코 보조</div>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    <strong>최종 위력:</strong> Act 3 보스 기준 낫 100+ → 치사성 적용 150+ → 취약 적 200+
+  </div>
+</section>
+
+<!-- ════ BUILD 6 ════ -->
+<section class="build-section" id="build6">
+  <div class="build-header">
+    <span class="build-num">Build 06</span>
+    <h2 style="color:var(--volatile-color)">휘발성 폭풍</h2>
+    <span class="diff-badge diff-hard">★★★ 고급</span>
+  </div>
+  <div class="build-desc">💡 <strong>자체 분석 추천 빌드.</strong> 휘발성 카드를 대량으로 쓰면서 서류 폭풍(드로우) + 잿빛 혼령(방어) + 밴시의 외침(0코스트 전체딜) 보상을 동시에 받는 구조.</div>
+
+  <div class="card-group-title">엔진 파워 (3개 다 깔아야 완성)</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">서류 폭풍</span> <span class="en">Pagestorm</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">휘발성 카드 뽑을 때마다 +1 드로우. <strong>드로우 엔진</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">잿빛 혼령</span> <span class="en">Spirit of Ash</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">휘발성 카드 쓸 때마다 <strong>방어도 4</strong>. 자동 방어</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">공허의 부름</span> <span class="en">Call of the Void</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">매 턴 시작 시 랜덤 카드 1장 + 휘발성 부여. <strong>무료 카드 공급</strong></div>
+    </div>
+  </div>
+
+  <div class="card-group-title">휘발성 공격 & 유틸</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">밴시의 외침</span> <span class="en">Banshee's Cry</span> <span class="tag tag-volatile">레어</span></div>
+      <div class="card-desc">6코 전체 33뎀. <strong>쓴 휘발성 카드 1장당 -1코</strong>. 6장 쓰면 0코스트!</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">끌어내리기</span> <span class="en">Pull from Below</span> <span class="tag tag-volatile">휘발성</span></div>
+      <div class="card-desc">이번 전투 쓴 휘발성 1장당 5뎀. 후반 갈수록 폭딜</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">모독</span> <span class="en">Defile</span> <span class="tag tag-volatile">휘발성</span></div>
+      <div class="card-desc">휘발성 13뎀. 쓰면 방어도(잿빛) + 드로우(서류) + 밴시 코스트↓</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">분석</span> <span class="en">Parse</span> <span class="tag tag-volatile">휘발성</span></div>
+      <div class="card-desc">휘발성 3장 드로우. 서류 폭풍 있으면 추가 드로우까지</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">두려움</span> <span class="en">Fear</span> <span class="tag tag-volatile">휘발성</span></div>
+      <div class="card-desc">휘발성 7뎀 + 취약 1. 가벼운 디버프 겸 트리거</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">쇠약의 손길</span> <span class="en">Enfeebling Touch</span> <span class="tag tag-volatile">휘발성</span></div>
+      <div class="card-desc">휘발성. 적 힘 8 감소. 보스전 생존기</div>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    <strong>왜 사기냐면:</strong> 파워 3장 깔리면 휘발성 카드 하나에 방어도 4 + 드로우 + 밴시 코스트↓ 동시 발동. 턴마다 5~6장 휘발성 돌리면 밴시 0코스트 + 끌어내리기 30+뎀.
+  </div>
+</section>
+
+<!-- ════ BUILD 7 ════ -->
+<section class="build-section" id="build7">
+  <div class="build-header">
+    <span class="build-num">Build 07</span>
+    <h2 style="background:linear-gradient(90deg, var(--doom-color), var(--soul-color)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">망각 + 영혼 하이브리드</h2>
+    <span class="diff-badge diff-hard">★★★ 고급</span>
+  </div>
+  <div class="build-desc">💡 <strong>자체 분석 추천 최종 빌드.</strong> 종말과 영혼을 동시에 쓰는 최강 하이브리드. 망각으로 영혼 연타 시 종말이 자동으로 쌓이면서 출몰+살점 재주 트리거까지.</div>
+
+  <div class="card-group-title">핵심 콤보 피스</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">망각</span> <span class="en">Oblivion</span> <span class="tag tag-doom">레어</span></div>
+      <div class="card-desc">0코스트. <strong>이번 턴 카드 쓸 때마다 종말 3</strong>. 콤보 시동 카드</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">출몰</span> <span class="en">Haunt</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">영혼 쓸 때마다 체력 6 잃음. 망각과 같이 쓰면 영혼 하나당 <strong>체력 6 + 종말 3</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">살점 재주</span> <span class="en">Sleight of Flesh</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">종말(디버프) 걸릴 때마다 <strong>+9뎀</strong>. 영혼 연타 시 디버프 트리거 폭발</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">도망칠 수 없다</span> <span class="en">No Escape</span> <span class="tag tag-doom">종말</span></div>
+      <div class="card-desc">영혼 연타로 쌓인 종말을 기하급수적으로 불림</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">죽음의 문턱</span> <span class="en">Death's Door</span></div>
+      <div class="card-desc">종말 건 턴이니 방어도 ×3. 콤보 턴에 방어도 보장</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-power">수의</span> <span class="en">Shroud</span> <span class="tag tag-power">파워</span></div>
+      <div class="card-desc">영혼마다 종말이 걸리니 → 영혼마다 방어도도</div>
+    </div>
+  </div>
+
+  <div class="card-group-title">영혼 생성 (빌드 3과 공유)</div>
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-rare">강령회</span> <span class="en">Seance</span> <span class="tag tag-soul">영혼</span></div>
+      <div class="card-desc">덱 슬리밍 + 영혼 생성</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">혼령 포획</span> <span class="en">Capture Spirit</span> <span class="tag tag-soul">영혼</span></div>
+      <div class="card-desc">적 체력 3 잃음 + 영혼 3장</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-uncommon">분리</span> <span class="en">Severance</span> <span class="tag tag-soul">영혼</span></div>
+      <div class="card-desc">13뎀 + 영혼 3곳에 각 1장</div>
+    </div>
+  </div>
+
+  <div class="combo-box">
+    <div class="combo-title">이상적인 턴 진행 (파워 3장 가정)</div>
+    <ol>
+      <li><strong>망각</strong> 사용 (0코스트)</li>
+      <li><strong>영혼 5장 연타</strong> (0코스트) → 종말 15 + 출몰로 HP 30 삭제 + 살점 재주로 45뎀</li>
+      <li><strong>도망칠 수 없다</strong> (1코스트) → 종말 기하급수적 증가</li>
+      <li>필요시 <strong>때가 되었다</strong>로 피니시</li>
+    </ol>
+  </div>
+
+  <div class="relic-box">
+    <div class="relic-title">추천 유물</div>
+    <div class="relic-item"><strong>장례용 가면</strong> — 전투 시작 시 영혼 3장</div>
+    <div class="relic-item"><strong>책 수리용 칼</strong> — 종말 즉사 시 체력 회복</div>
+    <div class="relic-item"><strong>섬뜩한 램프</strong> — 첫 디버프 효과 2배</div>
+  </div>
+</section>
+
+<!-- ════ COLORLESS ════ -->
+<section class="colorless-section" id="colorless">
+  <h2 style="color:#b0b0c0">범용 무색 카드 추천</h2>
+  <div class="section-desc">어떤 빌드든 상점/이벤트에서 보면 챙기면 좋은 카드들.</div>
+
+  <div class="card-list">
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-colorless">전략의 천재</span> <span class="en">Master of Strategy</span> <span class="tag tag-colorless">레어</span></div>
+      <div class="card-desc">0코스트 <strong>3장 드로우</strong>. 어떤 덱이든 무조건 좋아</div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-colorless">비밀 병기 / 비밀 기술</span> <span class="en">Secret Weapon / Technique</span> <span class="tag tag-colorless">레어</span></div>
+      <div class="card-desc">0코스트로 뽑을 더미에서 원하는 공격/스킬 서치. <strong>핵심 카드 찾기</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-colorless">어둠의 족쇄</span> <span class="en">Dark Shackles</span> <span class="tag tag-colorless">고급</span></div>
+      <div class="card-desc">0코스트 적 힘 9 감소. <strong>보스전 긴급 생존기</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-colorless">충격파</span> <span class="en">Shockwave</span> <span class="tag tag-colorless">고급</span></div>
+      <div class="card-desc">전체 약화+취약 3. 살점 재주 빌드면 <strong>6번 트리거</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-colorless">위풍당당</span> <span class="en">Panache</span> <span class="tag tag-colorless">파워</span></div>
+      <div class="card-desc">턴에 카드 5장 쓸 때마다 전체 10뎀. <strong>영혼 사이클 빌드에서 자연 달성</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-colorless">대혼란</span> <span class="en">Mayhem</span> <span class="tag tag-colorless">파워</span></div>
+      <div class="card-desc">매 턴 시작 시 뽑을 더미 맨 위 자동 사용. <strong>덱 압축한 영혼 빌드에서 강력</strong></div>
+    </div>
+    <div class="card-item">
+      <div class="card-name"><span class="rarity-colorless">임명</span> <span class="en">Anointed</span> <span class="tag tag-colorless">레어</span></div>
+      <div class="card-desc">뽑을 더미의 <strong>모든 레어 카드를 손으로</strong>. 소생+종말의 날+쥐어짜기 한 번에</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ TIPS ════ -->
+<section class="tips-section" id="tips">
+  <h2>초반 운영 팁</h2>
+  <div class="tip-item"><span class="tip-num">1</span> <strong>Act 1에서는 아키타입을 확정 짓지 마.</strong> 뜨는 카드에 맞춰서 유연하게 가야 해. 강제로 빌드를 밀면 망하기 쉬움.</div>
+  <div class="tip-item"><span class="tip-num">2</span> <strong>골골이는 1HP로 시작.</strong> 호위/시선 유도 같은 소환 카드를 초반에 확보하는 게 생존에 결정적.</div>
+  <div class="tip-item"><span class="tip-num">3</span> <strong>골골이 빌드라도 종말 카드 몇 장은 보험으로.</strong> HP 높은 엘리트/보스 상대로 처형이 구해줌.</div>
+  <div class="tip-item"><span class="tip-num">4</span> <strong>66 HP — 실수 한 번이 치명적.</strong> 방어 수단을 절대 소홀히 하지 말 것.</div>
+  <div class="tip-item"><span class="tip-num">5</span> <strong>덱 슬리밍이 핵심.</strong> 특히 영혼/휘발성 빌드에서는 불필요한 카드를 적극적으로 제거/변환해야 엔진이 돌아감.</div>
+</section>
+
+<!-- ════ FOOTER ════ -->
+<footer>
+  Slay the Spire 2 — Necrobinder Deck Building Guide<br>
+  Built with 🦴 by a fellow Spire climber
+</footer>
+
+</div>
+</body>
+</html>
